@@ -54,7 +54,7 @@ inline bool checkParentCellRestriction(CellID, const PhantomNodes &) { return tr
 
 // Restricted search (Args is LevelID, CellID):
 //   * use the fixed level for queries
-//   * check if the node cell is the same as the specified parent onr
+//   * check if the node cell is the same as the specified parent
 template <typename MultiLevelPartition>
 inline LevelID getNodeQueryLevel(const MultiLevelPartition &, NodeID, LevelID level, CellID)
 {
@@ -64,6 +64,61 @@ inline LevelID getNodeQueryLevel(const MultiLevelPartition &, NodeID, LevelID le
 inline bool checkParentCellRestriction(CellID cell, LevelID, CellID parent)
 {
     return cell == parent;
+}
+
+// Unrestricted search with a single phantom node (Args is const PhantomNode &):
+//   * use partition.GetQueryLevel to find the node query level
+//   * allow to traverse all cells
+template <typename MultiLevelPartition>
+inline LevelID getNodeQueryLevel(const MultiLevelPartition &partition,
+                                 const NodeID node,
+                                 const PhantomNode &phantom_node)
+{
+    auto highest_diffrent_level = [&partition, node](const SegmentID &phantom_node) {
+        if (phantom_node.enabled)
+            return partition.GetHighestDifferentLevel(phantom_node.id, node);
+        return INVALID_LEVEL_ID;
+    };
+
+    const auto node_level = std::min(highest_diffrent_level(phantom_node.forward_segment_id),
+                                     highest_diffrent_level(phantom_node.reverse_segment_id));
+
+    return node_level;
+}
+
+// Unrestricted search with a single phantom node and a vector of phantom nodes:
+//   * use partition.GetQueryLevel to find the node query level
+//   * allow to traverse all cells
+template <typename MultiLevelPartition>
+inline LevelID getNodeQueryLevel(const MultiLevelPartition &partition,
+                                 NodeID node,
+                                 const std::vector<PhantomNode> &phantom_nodes,
+                                 const std::size_t phantom_index,
+                                 const std::vector<std::size_t> &phantom_indices)
+{
+    auto min_level = [&partition, node](const PhantomNode &phantom_node) {
+
+        const auto &forward_segment = phantom_node.forward_segment_id;
+        const auto forward_level =
+            forward_segment.enabled ? partition.GetHighestDifferentLevel(node, forward_segment.id)
+                                    : INVALID_LEVEL_ID;
+
+        const auto &reverse_segment = phantom_node.reverse_segment_id;
+        const auto reverse_level =
+            reverse_segment.enabled ? partition.GetHighestDifferentLevel(node, reverse_segment.id)
+                                    : INVALID_LEVEL_ID;
+
+        return std::min(forward_level, reverse_level);
+    };
+
+    // Get minimum level over all phantoms of the highest different level with respect to node
+    // This is equivalent to min_{∀ source, target} partition.GetQueryLevel(source, node, target)
+    auto result = min_level(phantom_nodes[phantom_index]);
+    for (const auto &index : phantom_indices)
+    {
+        result = std::min(result, min_level(phantom_nodes[index]));
+    }
+    return result;
 }
 }
 
@@ -391,20 +446,20 @@ UnpackedPath search(SearchEngineData<Algorithm> &engine_working_data,
     // Get packed path as edges {from node ID, to node ID, from_clique_arc}
     auto packed_path = retrievePackedPathFromHeap(forward_heap, reverse_heap, middle);
 
-    if (!packed_path.empty())
-    {
-        std::cout << "packed_path: ";
-        for (auto edge : packed_path)
-        {
-            std::cout << std::get<0>(edge) << ",";
-        }
-        std::cout << std::get<1>(packed_path.back());
-        std::cout << std::endl;
-    }
-    else
-    {
-        std::cout << "no packed_path!" << std::endl;
-    }
+    // if (!packed_path.empty())
+    // {
+    //     std::cout << "packed_path: ";
+    //     for (auto edge : packed_path)
+    //     {
+    //         std::cout << std::get<0>(edge) << ",";
+    //     }
+    //     std::cout << std::get<1>(packed_path.back());
+    //     std::cout << std::endl;
+    // }
+    // else
+    // {
+    //     std::cout << "no packed_path!" << std::endl;
+    // }
 
     // Beware the edge case when start, middle, end are all the same.
     // In this case we return a single node, no edges. We also don't unpack.
@@ -465,12 +520,12 @@ UnpackedPath search(SearchEngineData<Algorithm> &engine_working_data,
             unpacked_edges.insert(unpacked_edges.end(), subpath_edges.begin(), subpath_edges.end());
         }
     }
-    std::cout << "unpacked_nodes: ";
-    for (auto node : unpacked_nodes)
-    {
-        std::cout << node << ", ";
-    }
-    std::cout << std::endl;
+    // std::cout << "unpacked_nodes: ";
+    // for (auto node : unpacked_nodes)
+    // {
+    //     std::cout << node << ", ";
+    // }
+    // std::cout << std::endl;
     return std::make_tuple(weight, std::move(unpacked_nodes), std::move(unpacked_edges));
 }
 
