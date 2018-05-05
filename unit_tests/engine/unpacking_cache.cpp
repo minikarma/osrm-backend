@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_CASE(add_edge_and_check_existence)
     BOOST_CHECK(cache.IsEdgeInCache(key) == true);
     BOOST_CHECK(cache.IsEdgeInCache(std::make_tuple(2, 2, 2)) == false);
 
-    auto result = cache.GetDuration(key);
+    auto result = cache.GetAnnotation(key);
     BOOST_CHECK_EQUAL(result, value);
 }
 
@@ -49,10 +49,10 @@ BOOST_AUTO_TEST_CASE(cache_invalidation)
     cache.AddEdge(key2, value2);
 
     // Assert
-    auto result = cache.GetDuration(key1);
+    auto result = cache.GetAnnotation(key1);
     BOOST_CHECK_EQUAL(result, MAXIMAL_EDGE_DURATION);
 
-    result = cache.GetDuration(key2);
+    result = cache.GetAnnotation(key2);
     BOOST_CHECK_EQUAL(result, value2);
 }
 
@@ -79,7 +79,7 @@ BOOST_AUTO_TEST_CASE(new_data)
     BOOST_CHECK(cache.IsEdgeInCache(key2) == true);
     BOOST_CHECK(cache.IsEdgeInCache(std::make_tuple(2, 2, 2)) == false);
 
-    auto result = cache.GetDuration(key2);
+    auto result = cache.GetAnnotation(key2);
     BOOST_CHECK_EQUAL(result, value2);
 }
 
