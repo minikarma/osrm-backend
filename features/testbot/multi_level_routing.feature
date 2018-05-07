@@ -108,11 +108,11 @@ Feature: Multi level routing
 
 
         When I request a travel distance matrix I should get
-            |   |         a |         f |         l |         o |
-            | a |         0 | 2287.2+-2 |    1443.1 |      1243 |
-            | f | 2284.5+-2 |         0 | 1241.7+-2 | 1441.8+-2 |
-            | l |    1443.1 | 1244.3+-2 |         0 |     600.4 |
-            | o |      1243 | 1444.4+-2 |     600.4 |         0 |
+            |   |       a |       f |       l |         o |
+            | a |    0+-2 | 2287+-2 | 1443+-2 |   1243+-2 |
+            | f | 2284+-2 |    0+-2 | 1241+-2 |   1441+-2 |
+            | l | 1443+-2 | 1244+-2 |    0+-2 |    600+-2 |
+            | o | 1243+-2 | 1444+-2 |  600+-2 |      0+-2 |
 
         When I request a travel distance matrix I should get
             |   | a | f          | l          | o        |
