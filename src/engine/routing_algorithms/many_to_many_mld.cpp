@@ -79,8 +79,8 @@ void relaxOutgoingEdges(const DataFacade<mld::Algorithm> &facade,
                     {
                         query_heap.Insert(to, to_weight, {node, true, to_duration});
                     }
-                    else if (std::tie(to_weight, to_duration) <
-                             std::tie(query_heap.GetKey(to), query_heap.GetData(to).duration))
+                    else if (std::tie(to_weight, to_duration, node) <
+                             std::tie(query_heap.GetKey(to), query_heap.GetData(to).duration, query_heap.GetData(to).parent))
                     {
                         query_heap.GetData(to) = {node, true, to_duration};
                         query_heap.DecreaseKey(to, to_weight);
@@ -109,8 +109,8 @@ void relaxOutgoingEdges(const DataFacade<mld::Algorithm> &facade,
                     {
                         query_heap.Insert(to, to_weight, {node, true, to_duration});
                     }
-                    else if (std::tie(to_weight, to_duration) <
-                             std::tie(query_heap.GetKey(to), query_heap.GetData(to).duration))
+                    else if (std::tie(to_weight, to_duration, node) <
+                             std::tie(query_heap.GetKey(to), query_heap.GetData(to).duration, query_heap.GetData(to).parent))
                     {
                         query_heap.GetData(to) = {node, true, to_duration};
                         query_heap.DecreaseKey(to, to_weight);
@@ -152,8 +152,8 @@ void relaxOutgoingEdges(const DataFacade<mld::Algorithm> &facade,
                 query_heap.Insert(to, to_weight, {node, false, to_duration});
             }
             // Found a shorter Path -> Update weight and set new parent
-            else if (std::tie(to_weight, to_duration) <
-                     std::tie(query_heap.GetKey(to), query_heap.GetData(to).duration))
+            else if (std::tie(to_weight, to_duration, node) <
+                             std::tie(query_heap.GetKey(to), query_heap.GetData(to).duration, query_heap.GetData(to).parent))
             {
                 query_heap.GetData(to) = {node, false, to_duration};
                 query_heap.DecreaseKey(to, to_weight);
